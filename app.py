@@ -219,8 +219,6 @@ def profile():
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    # form_pw = AuthenticatePasswordForm()
-
     form = EditUserForm(obj=g.user)
 
     if form.validate_on_submit():
@@ -236,6 +234,7 @@ def profile():
         image_url = form.image_url.data or None
         header_image_url = form.header_image_url.data or None
         bio = form.bio.data
+        location = form.location.data
 
         g.user.username = username
         g.user.email = email
@@ -244,6 +243,7 @@ def profile():
         if header_image_url:
             g.user.header_image_url = header_image_url
         g.user.bio = bio
+        g.user.location = location
 
         db.session.commit()
 

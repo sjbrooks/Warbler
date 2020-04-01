@@ -33,14 +33,9 @@ class EditUserForm(FlaskForm):
     email = StringField('E-mail',
                         validators=[DataRequired(),
                                     Email()])
-    image_url = StringField('(Optional) Image URL',
-                            validators=[URL()])
-    header_image_url = StringField('(Optional) Image URL',
-                                   validators=[URL()])
+    image_url = StringField('(Optional) Image URL')
+    header_image_url = StringField('(Optional) Image URL')
     bio = StringField('(Optional) Bio')
+    location = StringField('(Optional) Location')
     password = PasswordField('Password',
                              validators=[InputRequired(message="Password required to save")])
-
-
-# class AuthenticatePasswordForm(FlaskForm):
-#     """Form for authenticating password."""
