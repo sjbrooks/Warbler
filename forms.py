@@ -39,7 +39,7 @@ class EditUserForm(FlaskForm):
                                    validators=[URL()])
     bio = StringField('(Optional) Bio')
     password = PasswordField('Password',
-                             validators=[InputRequired(message="Password Required to save")])
+                             validators=[InputRequired(message="Password required to save")])
 
 
 # class AuthenticatePasswordForm(FlaskForm):
