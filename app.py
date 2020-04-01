@@ -324,14 +324,29 @@ def likes_page(user_id):
     
     likes = Likes.query.filter_by(user_id=user_id).all()
     likes_list = [l.message_id for l in likes]
+
     messages = Message.query.filter(Message.id.in_(likes_list))
+
+    # print("\n\n\n this is likes list\n\n\n", likes_list)
+
+    return render_template('messages/likes.html', 
+                           user=g.user, 
+                           messages=messages, 
+                           likes=likes_list)
+
+@app.route('/messages/<int:message_id>/unlike',methods=["POST"]) 
+def unlike_message(message_id):
+    """unlikes a message and removes it from our likes list"""
+    
+    current_msg = Likes.query.filter_by(message_id=message_id).first()
+    print("\n\n\n this is current msg  \n\n\n", current_msg)
+    db.session.delete(current_msg)
+    db.session.commit()
+
+    return redirect(f'/users/{g.user.id}/likes')
 
     
 
-    print("\n\n\n this is likes\n\n\n", likes)
-    print("\n\n\n this is likes list\n\n\n", likes_list)
-
-    return render_template('messages/likes.html', user=g.user, messages=messages)
 
 @app.route('/messages/<int:message_id>/delete', methods=["POST"])
 def messages_destroy(message_id):
