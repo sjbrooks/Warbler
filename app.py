@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, EditUserForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Likes
 
 CURR_USER_KEY = "curr_user"
 
@@ -29,6 +29,9 @@ connect_db(app)
 # User signup/login/logout
 
 # Why not use session instead of g? Is to to avoid self-referencing?
+# easier to store object/instance into g rather than session (session  only  for primitives)
+# g is cleared after every request - thats why we add-user-to-g before each request
+
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
@@ -305,6 +308,30 @@ def messages_show(message_id):
     msg = Message.query.get(message_id)
     return render_template('messages/show.html', message=msg)
 
+#our Likes section    
+
+@app.route('/messages/<int:message_id>/like',methods=["POST"])
+def like_message(message_id):
+    """allows user to like a message and save it to a liked message page"""
+    current_liked_msg = Likes(user_id=g.user.id, message_id=message_id)
+    db.session.add(current_liked_msg)
+    db.session.commit()
+    return redirect('/')
+
+@app.route('/users/<int:user_id>/likes')
+def likes_page(user_id):
+    """takes user to page of likes"""
+    
+    likes = Likes.query.filter_by(user_id=user_id).all()
+    likes_list = [l.message_id for l in likes]
+    messages = Message.query.filter(Message.id.in_(likes_list))
+
+    
+
+    print("\n\n\n this is likes\n\n\n", likes)
+    print("\n\n\n this is likes list\n\n\n", likes_list)
+
+    return render_template('messages/likes.html', user=g.user, messages=messages)
 
 @app.route('/messages/<int:message_id>/delete', methods=["POST"])
 def messages_destroy(message_id):

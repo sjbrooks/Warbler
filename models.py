@@ -46,6 +46,9 @@ class Likes(db.Model):
         db.Integer,
         db.ForeignKey('messages.id', ondelete='cascade')
     )
+    
+    def __repr__(self):
+        return f"<Like #{self.id}: {self.user_id}, {self.message_id}>"
 
 
 
