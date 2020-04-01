@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, EditUserForm, AuthenticatePasswordForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
@@ -28,7 +28,7 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
-## Why not use session instead of g? Is to to avoid self-referencing?
+# Why not use session instead of g? Is to to avoid self-referencing?
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
@@ -39,7 +39,9 @@ def add_user_to_g():
     else:
         g.user = None
 
-## confirm naming convention here with "do"
+# confirm naming convention here with "do"
+
+
 def do_login(user):
     """Log in user."""
 
@@ -213,7 +215,45 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    # form_pw = AuthenticatePasswordForm()
+
+    form = EditUserForm(obj=g.user)
+
+    if form.validate_on_submit():
+        password = form.password.data
+        user_valid = User.authenticate(g.user.username, password)
+        
+        if not user_valid:
+            flash("Access unauthorized.", "danger")
+            return redirect("/")
+
+        username = form.username.data
+        email = form.email.data
+        image_url = form.image_url.data or None
+        header_image_url = form.header_image_url.data or None
+        bio = form.bio.data
+
+        g.user.username = username
+        g.user.email = email
+        if image_url:
+            g.user.image_url = image_url
+        if header_image_url:
+            g.user.header_image_url = header_image_url
+        g.user.bio = bio
+
+        db.session.commit()
+
+        return redirect(f'/users/{g.user.id}')
+
+    else:
+        return render_template('/users/edit.html',
+                               form=form, 
+                               user_id=g.user.id)
+
 
 
 @app.route('/users/delete', methods=["POST"])
