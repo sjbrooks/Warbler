@@ -28,7 +28,7 @@ connect_db(app)
 ##############################################################################
 # User signup/login/logout
 
-
+## Why not use session instead of g? Is to to avoid self-referencing?
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user to Flask global."""
@@ -39,7 +39,7 @@ def add_user_to_g():
     else:
         g.user = None
 
-
+## confirm naming convention here with "do"
 def do_login(user):
     """Log in user."""
 
@@ -113,7 +113,9 @@ def login():
 def logout():
     """Handle logout of user."""
 
-    # IMPLEMENT THIS
+    do_logout()
+    flash(f"Successfully logged out {g.user.username}", 'info')
+    return redirect("/login")
 
 
 ##############################################################################
