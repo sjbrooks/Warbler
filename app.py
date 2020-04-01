@@ -149,6 +149,9 @@ def users_show(user_id):
 
     user = User.query.get_or_404(user_id)
 
+    likes = Likes.query.filter_by(user_id=user_id).all()
+    likes_list = [l.message_id for l in likes]
+
     # snagging messages in order from the database;
     # user.messages won't be in order by default
     messages = (Message
@@ -157,7 +160,7 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', user=user, messages=messages)
+    return render_template('users/show.html', user=user, messages=messages, likes=likes_list)
 
 
 @app.route('/users/<int:user_id>/following')
@@ -227,7 +230,7 @@ def profile():
     if form.validate_on_submit():
         password = form.password.data
         user_valid = User.authenticate(g.user.username, password)
-        
+
         if not user_valid:
             flash("Access unauthorized.", "danger")
             return redirect("/")
@@ -254,9 +257,8 @@ def profile():
 
     else:
         return render_template('/users/edit.html',
-                               form=form, 
+                               form=form,
                                user_id=g.user.id)
-
 
 
 @app.route('/users/delete', methods=["POST"])
@@ -305,12 +307,23 @@ def messages_add():
 def messages_show(message_id):
     """Show a message."""
 
+    likes = Likes.query.filter_by(user_id=user_id).all()
+    likes_list = [l.message_id for l in likes]
+
+    messages = (Message
+                .query
+                .filter(Message.user_id == g.user.id)
+                .order_by(Message.timestamp.desc())
+                .limit(100)
+                .all())
+
     msg = Message.query.get(message_id)
-    return render_template('messages/show.html', message=msg)
+    return render_template('messages/show.html', message=msg, messages=messages, likes=like_list)
 
-#our Likes section    
+# our Likes section
 
-@app.route('/messages/<int:message_id>/like',methods=["POST"])
+
+@app.route('/messages/<int:message_id>/like', methods=["POST"])
 def like_message(message_id):
     """allows user to like a message and save it to a liked message page"""
     current_liked_msg = Likes(user_id=g.user.id, message_id=message_id)
@@ -318,10 +331,11 @@ def like_message(message_id):
     db.session.commit()
     return redirect('/')
 
+
 @app.route('/users/<int:user_id>/likes')
 def likes_page(user_id):
     """takes user to page of likes"""
-    
+
     likes = Likes.query.filter_by(user_id=user_id).all()
     likes_list = [l.message_id for l in likes]
 
@@ -329,23 +343,22 @@ def likes_page(user_id):
 
     # print("\n\n\n this is likes list\n\n\n", likes_list)
 
-    return render_template('messages/likes.html', 
-                           user=g.user, 
-                           messages=messages, 
+    return render_template('messages/likes.html',
+                           user=g.user,
+                           messages=messages,
                            likes=likes_list)
 
-@app.route('/messages/<int:message_id>/unlike',methods=["POST"]) 
+
+@app.route('/messages/<int:message_id>/unlike', methods=["POST"])
 def unlike_message(message_id):
     """unlikes a message and removes it from our likes list"""
-    
+
     current_msg = Likes.query.filter_by(message_id=message_id).first()
     print("\n\n\n this is current msg  \n\n\n", current_msg)
     db.session.delete(current_msg)
     db.session.commit()
 
     return redirect(f'/users/{g.user.id}/likes')
-
-    
 
 
 @app.route('/messages/<int:message_id>/delete', methods=["POST"])
@@ -384,7 +397,12 @@ def homepage():
                     .limit(100)
                     .all())
 
-        return render_template('home.html', messages=messages)
+        likes = Likes.query.filter_by(user_id=g.user.id).all()
+        likes_list = [l.message_id for l in likes]
+
+        return render_template('home.html',
+                               messages=messages, 
+                               likes=likes_list)
 
     else:
         return render_template('home-anon.html')
