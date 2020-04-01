@@ -204,9 +204,12 @@ nav + .container {
   background-position: top center;
 }
 
-/* #profile-header {
-  object-fit: cover;
-} */
+#profile-header {
+  /* background-position-y: -50px; */
+  object-fit:cover;
+  width:100%;
+  height: 360px;
+}
 
 .full-width {
   width: 100vw;
