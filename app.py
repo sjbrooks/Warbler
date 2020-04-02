@@ -244,8 +244,12 @@ def profile():
 
         g.user.username = username
         g.user.email = email
+
+        # Keep current URL if they left it blank
         if image_url:
             g.user.image_url = image_url
+            
+        # Keep current URL if they left it blank
         if header_image_url:
             g.user.header_image_url = header_image_url
         g.user.bio = bio
@@ -308,7 +312,13 @@ def messages_show(message_id):
     """Show a message."""
 
     likes = Likes.query.filter_by(user_id=user_id).all()
-    likes_list = [l.message_id for l in likes]
+
+    ## Use a set b/c it only has keys and O(1) searching because you're searching for that specific key
+    ## set comprehension syntax - replace with curly braces
+    ## jinja syntax will be the same
+
+    ## watch out for these variable names
+    like_ids = [l.message_id for l in likes]
 
     messages = (Message
                 .query
@@ -318,16 +328,34 @@ def messages_show(message_id):
                 .all())
 
     msg = Message.query.get(message_id)
-    return render_template('messages/show.html', message=msg, messages=messages, likes=like_list)
+    return render_template('messages/show.html', message=msg, messages=messages, likes=like_ids)
 
-# our Likes section
+    ## when we pass it to the template, call it like_ids instead
 
+
+@app.route('/messages/<int:message_id>/delete', methods=["POST"])
+def messages_destroy(message_id):
+    """Delete a message."""
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    msg = Message.query.get(message_id)
+    db.session.delete(msg)
+    db.session.commit()
+
+    return redirect(f"/users/{g.user.id}")
+
+
+##############################################################################
+# Likes routes:
 
 @app.route('/messages/<int:message_id>/like', methods=["POST"])
 def like_message(message_id):
     """allows user to like a message and save it to a liked message page"""
-    current_liked_msg = Likes(user_id=g.user.id, message_id=message_id)
-    db.session.add(current_liked_msg)
+    current_msg_like = Likes(user_id=g.user.id, message_id=message_id)
+    db.session.add(current_msg_like)
     db.session.commit()
     return redirect('/')
 
@@ -351,7 +379,8 @@ def likes_page(user_id):
 
 @app.route('/messages/<int:message_id>/unlike', methods=["POST"])
 def unlike_message(message_id):
-    """unlikes a message and removes it from our likes list"""
+    """Unlikes a message and removes it from our likes 
+    database and redirects to the user likes page"""
 
     current_msg = Likes.query.filter_by(message_id=message_id).first()
     print("\n\n\n this is current msg  \n\n\n", current_msg)
@@ -359,21 +388,6 @@ def unlike_message(message_id):
     db.session.commit()
 
     return redirect(f'/users/{g.user.id}/likes')
-
-
-@app.route('/messages/<int:message_id>/delete', methods=["POST"])
-def messages_destroy(message_id):
-    """Delete a message."""
-
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    msg = Message.query.get(message_id)
-    db.session.delete(msg)
-    db.session.commit()
-
-    return redirect(f"/users/{g.user.id}")
 
 
 ##############################################################################
