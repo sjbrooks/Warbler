@@ -14,11 +14,10 @@ app = Flask(__name__)
 # Get DB_URI from environ variable (useful for production/testing) or,
 # if not set there, use development local db.
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    os.environ.get('DATABASE_URL', 'postgres:///warbler'))
+os.environ.get('DATABASE_URL', 'postgres:///warbler'))
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
 
 # Having the Debug Toolbar show redirects explicitly is often useful;
@@ -319,7 +318,7 @@ def messages_show(message_id):
 
     likes = Likes.query.filter_by(user_id=user_id).all()
 
-    # Use a set b/c it only has keys and O(1) searching because you're 
+    # Use a set b/c it only has keys and O(1) searching because you're
     # searching for that specific key
     # set comprehension syntax - replace with curly braces
     # jinja syntax will be the same
@@ -336,8 +335,8 @@ def messages_show(message_id):
 
     msg = Message.query.get(message_id)
     return render_template('messages/show.html',
-                           message=msg, 
-                           messages=messages, 
+                           message=msg,
+                           messages=messages,
                            like_ids=like_ids)
 
 
@@ -407,9 +406,10 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    users_list = [u.id for u in g.user.following]
-    print("\n\n\n this is our users_list\n\n\n", users_list)
+
     if g.user:
+        
+        users_list = [u.id for u in g.user.following]
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(users_list))
