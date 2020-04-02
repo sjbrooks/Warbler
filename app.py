@@ -20,6 +20,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = False
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "it's a secret")
+
+# Having the Debug Toolbar show redirects explicitly is often useful;
+# however, if you want to turn it off, you can uncomment this line:
+#
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
@@ -150,7 +156,7 @@ def users_show(user_id):
     user = User.query.get_or_404(user_id)
 
     likes = Likes.query.filter_by(user_id=user_id).all()
-    likes_list = [l.message_id for l in likes]
+    like_ids = {l.message_id for l in likes}
 
     # snagging messages in order from the database;
     # user.messages won't be in order by default
@@ -160,7 +166,7 @@ def users_show(user_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    return render_template('users/show.html', user=user, messages=messages, likes=likes_list)
+    return render_template('users/show.html', user=user, messages=messages, like_ids=like_ids)
 
 
 @app.route('/users/<int:user_id>/following')
@@ -248,7 +254,7 @@ def profile():
         # Keep current URL if they left it blank
         if image_url:
             g.user.image_url = image_url
-            
+
         # Keep current URL if they left it blank
         if header_image_url:
             g.user.header_image_url = header_image_url
@@ -313,12 +319,13 @@ def messages_show(message_id):
 
     likes = Likes.query.filter_by(user_id=user_id).all()
 
-    ## Use a set b/c it only has keys and O(1) searching because you're searching for that specific key
-    ## set comprehension syntax - replace with curly braces
-    ## jinja syntax will be the same
+    # Use a set b/c it only has keys and O(1) searching because you're 
+    # searching for that specific key
+    # set comprehension syntax - replace with curly braces
+    # jinja syntax will be the same
 
-    ## watch out for these variable names
-    like_ids = [l.message_id for l in likes]
+    # like_ids is a better variable name than curr_liked_message
+    like_ids = {l.message_id for l in likes}
 
     messages = (Message
                 .query
@@ -328,9 +335,10 @@ def messages_show(message_id):
                 .all())
 
     msg = Message.query.get(message_id)
-    return render_template('messages/show.html', message=msg, messages=messages, likes=like_ids)
-
-    ## when we pass it to the template, call it like_ids instead
+    return render_template('messages/show.html',
+                           message=msg, 
+                           messages=messages, 
+                           like_ids=like_ids)
 
 
 @app.route('/messages/<int:message_id>/delete', methods=["POST"])
@@ -365,16 +373,14 @@ def likes_page(user_id):
     """takes user to page of likes"""
 
     likes = Likes.query.filter_by(user_id=user_id).all()
-    likes_list = [l.message_id for l in likes]
+    like_ids = {l.message_id for l in likes}
 
-    messages = Message.query.filter(Message.id.in_(likes_list))
-
-    # print("\n\n\n this is likes list\n\n\n", likes_list)
+    messages = Message.query.filter(Message.id.in_(like_ids))
 
     return render_template('messages/likes.html',
                            user=g.user,
                            messages=messages,
-                           likes=likes_list)
+                           like_ids=like_ids)
 
 
 @app.route('/messages/<int:message_id>/unlike', methods=["POST"])
@@ -412,11 +418,11 @@ def homepage():
                     .all())
 
         likes = Likes.query.filter_by(user_id=g.user.id).all()
-        likes_list = [l.message_id for l in likes]
+        like_ids = {l.message_id for l in likes}
 
         return render_template('home.html',
-                               messages=messages, 
-                               likes=likes_list)
+                               messages=messages,
+                               like_ids=like_ids)
 
     else:
         return render_template('home-anon.html')

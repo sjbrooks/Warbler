@@ -58,26 +58,18 @@
             </div>
 
           {% if g.user.id != msg.user_id %}
-            {% if msg.id in likes %}
-            <form method="POST" action="/messages/{{msg.id}}/unlike" class="messages-like">
+            {% if msg.id in like_ids %}
+            <form method="POST" class="messages-like" action="/messages/{{msg.id}}/unlike">
+            {% else %}
+            <form method="POST" class="messages-like" action="/messages/{{msg.id}}/like">
+            {% endif %}
               <button class="
                 btn
                 btn-sm
-                {{'btn-primary' if msg.id in likes else 'btn-secondary'}}">
+                {{'btn-primary' if msg.id in like_ids else 'btn-secondary'}}">
                 <i class="fas fa-thumbs-up"></i>
               </button>
             </form>
-            {% else %}
-            <form method="POST" action="/messages/{{ msg.id }}/like" class="messages-like">
-              <button class="
-                btn
-                btn-sm
-                {{'btn-primary' if msg.id in likes else 'btn-secondary'}}"
-              >
-                <i class="fa fa-thumbs-up"></i>
-              </button>
-            </form>
-            {% endif %}
             {% endif %}
 
           </li>

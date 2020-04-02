@@ -19,12 +19,12 @@
             <p>{{ message.text }}</p>
           </div>
           {% if g.user.id != message.user_id %}
-            {% if message.id in likes %}
+            {% if message.id in like_ids %}
           <form method="POST" action="/messages/{{message.id}}/unlike" class="messages-like">
             <button class="
               btn
               btn-sm
-              {{'btn-primary' if message.id in likes else 'btn-secondary'}}">
+              {{'btn-primary' if message.id in like_ids else 'btn-secondary'}}">
               <i class="fas fa-thumbs-up"></i>
             </button>
           </form>
