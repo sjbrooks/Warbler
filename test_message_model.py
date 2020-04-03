@@ -4,8 +4,6 @@
 #
 #    FLASK_ENV=production python -m unittest <name-of-python-file>
 
-
-from app import app
 import os
 from unittest import TestCase
 from sqlalchemy import exc
@@ -19,6 +17,7 @@ from models import db, User, Message, Follows
 os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///warbler_test'
 
+from app import app
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
@@ -94,5 +93,46 @@ class MessageModelTestCase(TestCase):
         self.assertEqual(len(messages), 2)
         self.assertEqual(f"{messages[1]}", f"<Message #{m.id}: {m.text}, {m.timestamp}, {m.user_id}>")
 
+    def test_delete_message(self):
+        """Tests that we can delete a message 
+        instance and commit that change to the database"""
 
-    ### Liking and unliking, deleting
+        message = Message.query.get(self.msg_id)
+        db.session.delete(message)
+        db.session.commit()
+
+        test_user1 = User.query.get(self.user1_id)
+        messages = test_user1.messages
+        self.assertEqual(len(messages), 0)
+
+        print("\n\n\n THIS IS THE MESSAGE ID", self.msg_id, "\n\n\n")
+
+        resp = self.client.get(f"/messages/{self.msg_id}")
+        self.assertEqual(resp.status_code, 404)
+
+    def test_like_message(self):
+        """Tests that we can successfully like a message and add that 
+        new relationship instance to the join table"""
+        
+        message = Message.query.get(self.msg_id)
+        test_user2 = User.query.get(self.user2_id)
+
+        test_user2.likes.append(message)
+        db.session.commit()
+        self.assertEqual(len(test_user2.likes), 1)
+
+    def test_unlike_message(self):
+        """Tests that we can successfully like a message and add that 
+        new relationship instance to the join table"""
+        
+        message = Message.query.get(self.msg_id)
+        test_user2 = User.query.get(self.user2_id)
+
+        test_user2.likes.append(message)
+        db.session.commit()
+
+        liked_msg = test_user2.likes[0]
+        db.session.delete(liked_msg)
+        db.session.commit()
+
+        self.assertEqual(len(test_user2.likes), 0)

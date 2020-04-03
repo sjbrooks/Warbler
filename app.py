@@ -316,7 +316,10 @@ def messages_add():
 def messages_show(message_id):
     """Show a message."""
 
-    likes = Likes.query.filter_by(user_id=user_id).all()
+    msg = Message.query.get_or_404(message_id)
+    print("\n\n\n THE MESSAGE ID IS", msg, "\n\n\n")
+
+    likes = Likes.query.filter_by(user_id=msg.user_id).all()
 
     # Use a set b/c it only has keys and O(1) searching because you're
     # searching for that specific key
@@ -332,8 +335,7 @@ def messages_show(message_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-
-    msg = Message.query.get(message_id)
+    
     return render_template('messages/show.html',
                            message=msg,
                            messages=messages,
