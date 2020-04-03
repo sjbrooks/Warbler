@@ -2,7 +2,7 @@
 
 # run these tests like:
 #
-#    python -m unittest test_user_model.py
+#    FLASK_ENV=production python -m unittest <name-of-python-file>
 
 
 import os
@@ -18,7 +18,7 @@ from models import db, User, Message, Follows
 os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///warbler_test'
 
-from app import app
+from app import app, do_login, do_logout
 
 
 # Now we can import app
@@ -32,7 +32,7 @@ db.create_all()
 
 
 class UserModelTestCase(TestCase):
-    """Test views for messages."""
+    """Test case for User model."""
 
     def setUp(self):
         """Create test client, add sample data."""
@@ -43,19 +43,11 @@ class UserModelTestCase(TestCase):
 
         self.client = app.test_client()
 
-        u1 = User(
-            email="user1@test.com",
-            username="testuserONE",
-            password="HASHED_PASSWORD"
-        )
+        u1 = User.signup("testuserONE", "user1@test.com", "HASHED_PASSWORD", "")
 
         db.session.add(u1)
 
-        u2 = User(
-            email="user2@test.com",
-            username="testuserTWO",
-            password="HASHED_PASSWORD"
-        )
+        u2 = User.signup("testuserTWO", "user2@test.com", "HASHED_PASSWORD", "")
 
         db.session.add(u2)
         db.session.commit()
@@ -81,8 +73,7 @@ class UserModelTestCase(TestCase):
 
         test_user1 = User.query.get(self.user1_id)
 
-        self.assertEqual(
-            f"{test_user1}", f"<User #{test_user1.id}: {test_user1.username}, {test_user1.email}>")
+        self.assertEqual(f"{test_user1}", f"<User #{test_user1.id}: {test_user1.username}, {test_user1.email}>")
 
     def test_is_following(self):
         """ test to see if user following another user is successfully detected"""
@@ -138,4 +129,18 @@ class UserModelTestCase(TestCase):
 
         with self.assertRaises(exc.IntegrityError):
             db.session.commit()
+    
+    def test_user_authenticate(self):
+        """Tests that valid authentication works"""
+
+        test_user1 = User.query.get(self.user1_id)
+        res = User.authenticate(test_user1.username, "HASHED_PASSWORD")
+        # print("\n\n\n\ THE RESULT IS", res, "\n\n\n")
+
+        self.assertEqual(res, test_user1)
+        self.assertNotEqual(res, False)
+
+        res2 = User.authenticate('NonExistantUsername', "HASHED_PASSWORD")
+        self.assertEqual(res2, False)
+
 
