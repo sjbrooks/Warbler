@@ -42,7 +42,7 @@
             <form method="POST" action="/users/delete" class="form-inline">
               <button class="btn btn-outline-danger ml-2">Delete Profile</button>
             </form>
-            {% if g.user.is_following(user) %}
+            {% elif g.user.is_following(user) %}
             <form method="POST" action="/users/stop-following/{{ user.id }}">
               <button class="btn btn-primary">Unfollow</button>
             </form>
@@ -50,7 +50,6 @@
             <form method="POST" action="/users/follow/{{ user.id }}">
               <button class="btn btn-outline-primary">Follow</button>
             </form>
-            {% endif %}
             {% endif %}
           </div>
         </ul>
