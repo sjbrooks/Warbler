@@ -10,23 +10,13 @@ from unittest import TestCase
 from sqlalchemy import exc
 from models import db, User, Message, Follows
 
-# BEFORE we import our app, let's set an environmental variable
-# to use a different database for tests (we need to do this
-# before we import our app, since that will have already
-# connected to the database
+# BEFORE we import our app, we need to set an environmental variable
+# to use a different database for tests
 
 os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///warbler_test'
 
 from app import app, do_login, do_logout
 
-
-# Now we can import app
-
-
-# Create our tables (we do this here, so we only create the tables
-# once for all tests --- in each test, we'll delete the data
-# and create fresh new clean test data
 
 db.create_all()
 
@@ -124,18 +114,14 @@ class UserModelTestCase(TestCase):
                             username="jim", password="mypassword")
         db.session.add(invalid_user)
 
-        # as explained by joel in lecture, imported exc from sqlalchemy
-        # and used assert Raises to expect the integrity error method from exc
-
         with self.assertRaises(exc.IntegrityError):
             db.session.commit()
-    
+
     def test_user_authenticate(self):
         """Tests that valid authentication works"""
 
         test_user1 = User.query.get(self.user1_id)
         res = User.authenticate(test_user1.username, "HASHED_PASSWORD")
-        # print("\n\n\n\ THE RESULT IS", res, "\n\n\n")
 
         self.assertEqual(res, test_user1)
         self.assertNotEqual(res, False)

@@ -9,6 +9,16 @@ bcrypt = Bcrypt()
 db = SQLAlchemy()
 
 
+def connect_db(app):
+    """Connect this database to provided Flask app.
+
+    You should call this in your Flask app.
+    """
+
+    db.app = app
+    db.init_app(app)
+
+
 class Follows(db.Model):
     """Connection of a follower <-> followed_user."""
 
@@ -30,7 +40,7 @@ class Follows(db.Model):
 class Likes(db.Model):
     """Mapping user likes to warbles."""
 
-    __tablename__ = 'likes' 
+    __tablename__ = 'likes'
 
     id = db.Column(
         db.Integer,
@@ -46,10 +56,9 @@ class Likes(db.Model):
         db.Integer,
         db.ForeignKey('messages.id', ondelete='cascade')
     )
-    
+
     def __repr__(self):
         return f"<Like #{self.id}: {self.user_id}, {self.message_id}>"
-
 
 
 class User(db.Model):
@@ -205,12 +214,3 @@ class Message(db.Model):
     def __repr__(self):
         return f"<Message #{self.id}: {self.text}, {self.timestamp}, {self.user_id}>"
 
-
-def connect_db(app):
-    """Connect this database to provided Flask app.
-
-    You should call this in your Flask app.
-    """
-
-    db.app = app
-    db.init_app(app)

@@ -317,7 +317,6 @@ def messages_show(message_id):
     """Show a message."""
 
     msg = Message.query.get_or_404(message_id)
-    print("\n\n\n THE MESSAGE ID IS", msg, "\n\n\n")
 
     likes = Likes.query.filter_by(user_id=msg.user_id).all()
 
@@ -335,7 +334,7 @@ def messages_show(message_id):
                 .order_by(Message.timestamp.desc())
                 .limit(100)
                 .all())
-    
+
     return render_template('messages/show.html',
                            message=msg,
                            messages=messages,
@@ -386,11 +385,10 @@ def likes_page(user_id):
 
 @app.route('/messages/<int:message_id>/unlike', methods=["POST"])
 def unlike_message(message_id):
-    """Unlikes a message and removes it from our likes 
+    """Unlikes a message and removes it from our likes
     database and redirects to the user likes page"""
 
     current_msg = Likes.query.filter_by(message_id=message_id).first()
-    print("\n\n\n this is current msg  \n\n\n", current_msg)
     db.session.delete(current_msg)
     db.session.commit()
 
@@ -410,7 +408,7 @@ def homepage():
     """
 
     if g.user:
-        
+
         users_list = [u.id for u in g.user.following]
         messages = (Message
                     .query

@@ -11,22 +11,13 @@ from flask import session
 
 from models import db, connect_db, Message, User
 
-# BEFORE we import our app, let's set an environmental variable
-# to use a different database for tests (we need to do this
-# before we import our app, since that will have already
-# connected to the database
+# BEFORE we import our app, we need to set an environmental variable
+# to use a different database for tests
 
 os.environ['DATABASE_URL'] = "postgresql:///warbler_test"
 
 from app import app, CURR_USER_KEY, do_login, do_logout
 
-
-# Now we can import app
-
-
-# Create our tables (we do this here, so we only create the tables
-# once for all tests --- in each test, we'll delete the data
-# and create fresh new clean test data
 
 db.create_all()
 
@@ -93,14 +84,14 @@ class UserViewTestCase(TestCase):
 
         # self.assertIn("card user-card", html)
         self.assertIn('<div class="card user-card">', html)
-    
+
     def test_follows_upon_logout(self):
 
         """tests to make sure we are redirected to home page if we are locked out"""
 
         self.testuser2.following.append(self.testuser1)
         db.session.commit()
-        
+
         resp = self.client.get(
             f"/users/{self.testuser1.id}/followers", follow_redirects=True)
 
@@ -149,18 +140,3 @@ class UserViewTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(user1.messages[0].text, "here's a test")
 
-
-        # curious as to why this isnt returning the correct html, even though we
-        # are sending  the  corret message id throubgh  the client in line 142.
-
-        # self.assertIn("here's a test", html)
-
-        #=============================================================================
-
-        # these are exactly the same, even in a new py document with the find feature. 
-        # why does unittest throw an assertion error??
-
-        # self.assertEqual(user1.messages[0], message)
-
-    
-    
